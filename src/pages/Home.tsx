@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, Alert } from "react-native";
 
 import { Header } from "../components/Header";
 import { Task, TasksList } from "../components/TasksList";
@@ -9,13 +9,23 @@ export function Home() {
   const [tasks, setTasks] = useState<Task[]>([]);
 
   function handleAddTask(newTaskTitle: string) {
-    const task = {
-      id: new Date().getTime(),
-      title: newTaskTitle,
-      done: false,
-    };
+    const todo = tasks.find((task) => task.title === newTaskTitle);
 
-    setTasks((old) => [...old, task]);
+    if (!!todo) {
+      Alert.alert(
+        "Task já cadastrada",
+        "Você não pode cadastrar uma task com o mesmo nome",
+        [{ text: "OK" }]
+      );
+    } else {
+      const task = {
+        id: new Date().getTime(),
+        title: newTaskTitle,
+        done: false,
+      };
+
+      setTasks((old) => [...old, task]);
+    }
   }
 
   function handleToggleTaskDone(id: number) {
@@ -35,8 +45,37 @@ export function Home() {
   }
 
   function handleRemoveTask(id: number) {
-    setTasks((old) => old.filter((task) => task.id !== id));
+    Alert.alert(
+      "Remover item",
+      "Tem certeza que você deseja remover esse item?",
+      [
+        {
+          text: "Não",
+        },
+        {
+          text: "Sim",
+          onPress: () =>
+            setTasks((old) => old.filter((task) => task.id !== id)),
+        },
+      ]
+    );
   }
+
+  const handleEditTask = (taskId: number, taskNewTitle: string) => {
+    const updatedTasks = tasks.map((task) => {
+      if (task.id === taskId) {
+        return {
+          id: task.id,
+          title: taskNewTitle,
+          done: task.done,
+        };
+      }
+
+      return task;
+    });
+
+    setTasks(updatedTasks);
+  };
 
   return (
     <View style={styles.container}>
@@ -46,6 +85,7 @@ export function Home() {
 
       <TasksList
         tasks={tasks}
+        editTask={handleEditTask}
         toggleTaskDone={handleToggleTaskDone}
         removeTask={handleRemoveTask}
       />
